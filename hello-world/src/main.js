@@ -1,60 +1,77 @@
-import './style.css'
-import heroImg from './assets/hero.png'
-import javascriptLogo from './assets/javascript.svg'
-import viteLogo from './assets/vite.svg'
-import { setupCounter } from './counter.js'
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js'
 
-document.querySelector('#app').innerHTML = `
-<section id="center">
-  <div class="hero">
-    <img src="${heroImg}" class="base" width="170" height="179">
-    <img src="${javascriptLogo}" class="framework" alt="JavaScript logo"/>
-    <img src="${viteLogo}" class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/main.js</code> and save to test <code>HMR</code></p>
-  </div>
-  <button id="counter" type="button" class="counter"></button>
-</section>
 
-<div class="ticks"></div>
+// Initialize the scene
+const scene = new THREE.Scene();
 
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank">
-          <img class="logo" src="${viteLogo}" alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-          <img class="button-icon" src="${javascriptLogo}" alt="">
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-      <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-      <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-      <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
-    </ul>
-  </div>
-</section>
+// add objectives to the scene
+const cubeGeometry = new THREE.BoxGeometry(1,1,1)
+const cubeMaterial = new THREE.MeshBasicMaterial({color:"red"})
 
-<div class="ticks"></div>
-<section id="spacer"></section>
-`
+const cubeMesh = new THREE.Mesh(
+  cubeGeometry,
+  cubeMaterial
+)
 
-setupCounter(document.querySelector('#counter'))
+scene.add(cubeMesh)
+
+// initialized the camera
+const camera = new THREE.PerspectiveCamera(
+  75, // field of view
+  window.innerWidth / window.innerHeight,
+  0.1, // near clipping plane // should smaller than the distance to the surface object
+  200 // far clipping plane
+)
+
+const aspectRatio = window.innerWidth / window.innerHeight
+
+// const camera = new THREE.OrthographicCamera(
+//   // left, right, top, bottom, near, far
+//   -1 * aspectRatio,  // to define a viewing rectangle with the same shape as the screen
+//   1 * aspectRatio,
+//   1,
+//   -1,
+//   0.1,
+//   200
+// )
+
+camera.position.z = 5
+scene.add(camera)
+
+// initialize the renderer
+const canvas = document.querySelector('canvas.threejs')
+const renderer = new THREE.WebGLRenderer({
+  canvas: canvas,
+  antialias: true
+})
+renderer.setSize(window.innerWidth, window.innerHeight)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)) 
+// Set the pixel ratio for high-DPI displays.
+// This determines how many physical pixels Three.js uses to render each CSS pixel.
+// This makes the WebGL image much sharper.
+
+
+// initialize the controls
+const controls = new OrbitControls(camera, canvas)
+controls.enableDamping = true
+// controls.autoRotate = true
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight
+  camera.updateProjectionMatrix()
+  renderer.setSize(window.innerWidth, window.innerHeight)
+})
+
+
+// render the scene
+const renderloop = () => {
+
+  controls.update() // update the controls before rendering
+  renderer.render(scene,camera)
+  window.requestAnimationFrame(renderloop)
+
+}
+
+renderloop()
+
